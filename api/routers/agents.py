@@ -22,13 +22,17 @@ async def stream(request: AgentRequest):
         thread_id = request.id
 
         config = {"configurable": {"thread_id": thread_id}}
-
-        messages = [parseMessage(message) for message in inputs]
-        print("Messages:", messages)
+        
+        state = {
+            "messages": [parseMessage(message) for message in inputs],
+            "metadata":  {"agent_id": "1"}
+        }
+        
+        print("State:", state)
         
         async def event_stream() -> AsyncGenerator[str, None]:
             accumulated_metadata = {}
-            async for chunk, metadata in graph.astream({"messages": messages}, config, stream_mode="messages"):
+            async for chunk, metadata in graph.astream(state, config, stream_mode="messages"):
                 content = chunk.content if chunk.content else ""
                 if content:
                     print(f"0:{json.dumps(content)}\n")

@@ -1,21 +1,25 @@
 from typing import List, Optional
+from uuid import UUID
 from pydantic import BaseModel
+
+from api.stores.schemas import DocumentBase
+
 
 class AgentBase(BaseModel):
     name: str
-    description: Optional[str] = None
+    description: str
     index_name: str
+    documents: Optional[List[DocumentBase]] = None
 
 class AgentCreate(AgentBase):
     pass
 
-
 class Agent(AgentBase):
-    id: int
+    id: UUID
 
     class Config:
         from_attributes = True
-        
+
 
 # API Models
 class ClientAttachment(BaseModel):

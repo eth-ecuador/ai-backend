@@ -8,7 +8,7 @@ def get_agents(db: Session, skip: int = 0, limit: int = 10):
     return db.query(models.Agent).offset(skip).limit(limit).all()
 
 def create_agent(db: Session, agent: schemas.AgentCreate):
-    db_agent = models.Agent(name=agent.name, description=agent.description, index_name=agent.index_name)
+    db_agent = models.Agent(name=agent.name, description=agent.description, index_name=agent.index_name, documents=[])
     db.add(db_agent)
     db.commit()
     db.refresh(db_agent)

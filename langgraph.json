@@ -1,0 +1,8 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "index": "./agent_graphs/index_graph/graph.py:graph",
+    "retrieval_graph": "./agent_graphs/retrieval_graph/graph.py:graph"
+  },
+  "env": ".env"
+}

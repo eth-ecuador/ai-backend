@@ -1,28 +1,13 @@
-from typing import List, Optional
-from pydantic import BaseModel
+from sqlalchemy import Column, Integer, String
 
-class ClientAttachment(BaseModel):
-    name: str
-    contentType: str
-    url: str
+from ..database import Base, engine
 
+class Agent(Base):
+    __tablename__ = "agents"
 
-class ToolInvocation(BaseModel):
-    toolCallId: str
-    toolName: str
-    args: dict
-    result: dict
-    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    description = Column(String)
+    index_name = Column(String, index=True, unique=True)
 
-class ClientMessage(BaseModel):
-    role: str
-    content: str
-    experimental_attachments: Optional[List[ClientAttachment]] = None
-    toolInvocations: Optional[List[ToolInvocation]] = None
-
-
-class AgentRequest(BaseModel):
-    messages: List[ClientMessage]
-    user_id: str
-    thread_id: str
-    index_name: str
+Base.metadata.create_all(bind=engine)

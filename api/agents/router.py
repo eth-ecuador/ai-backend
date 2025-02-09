@@ -1,13 +1,16 @@
 import json
 from typing import Annotated, AsyncGenerator
-from fastapi import APIRouter, Body
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 
 from agent_graphs.retrieval_graph.graph import graph
 from agent_graphs.retrieval_graph.configuration import Configuration
 from agent_graphs.retrieval_graph.state import InputState
-from api.agents.models import AgentRequest
+from sqlalchemy.orm import Session
+
 from api.agents.utils import parseMessage
+from api.database import get_db
+from . import crud, schemas
 
 router = APIRouter(
     prefix="/agents",
@@ -16,8 +19,36 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
+
+@router.post("/", response_model=schemas.Agent)
+def create_user(agent: schemas.AgentCreate, db: Session = Depends(get_db)):
+    print("agent", agent)
+    return crud.create_agent(db=db, agent=agent)
+
+
+@router.get("/", response_model=list[schemas.Agent])
+def get_agents(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+    agents = crud.get_agents(db, skip=skip, limit=limit)
+    return agents
+
+
+@router.get("/{agent_id}", response_model=schemas.Agent)
+def get_one_agent(agent_id: int, db: Session = Depends(get_db)):
+    db_agent = crud.get_agent(db, agent_id=agent_id)
+    if db_agent is None:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    return db_agent
+
+@router.delete("/{agent_id}")
+def delete_agent(agent_id: int, db: Session = Depends(get_db)):
+    db_agent = crud.delete_agent(db, agent_id=agent_id)
+    if db_agent is None:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    return db_agent
+
+
 @router.post("/stream")
-async def stream(request: AgentRequest):
+async def stream(request: schemas.AgentRequest):
     try:
         inputs = request.messages
 
@@ -31,7 +62,7 @@ async def stream(request: AgentRequest):
             "query_model": "anthropic/claude-3-haiku-20240307",
             "thread_id": request.thread_id
         }}
-        
+
         state: InputState = {
             "messages": [parseMessage(message) for message in inputs]
         }
@@ -52,7 +83,8 @@ async def stream(request: AgentRequest):
             completion_tokens = usage.get("completion_tokens", 0)
             yield f'd:{{"finishReason":"{finish_reason}","usage":{{"promptTokens":{prompt_tokens},"completionTokens":{completion_tokens}}}}}\n'
 
-        response = StreamingResponse(event_stream(), media_type="text/event-stream")
+        response = StreamingResponse(
+            event_stream(), media_type="text/event-stream")
         response.headers['x-vercel-ai-data-stream'] = 'v1'
         return response
     except Exception as e:

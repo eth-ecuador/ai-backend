@@ -1,5 +1,6 @@
-from api.agents.models import ClientMessage
 from langchain_core.messages import AnyMessage, HumanMessage, ToolMessage, SystemMessage
+
+from api.agents.schemas import ClientMessage
 
 
 def parseMessage(message: ClientMessage) -> AnyMessage:

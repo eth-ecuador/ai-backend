@@ -33,7 +33,7 @@ def get_agents(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
 
 
 @router.get("/{agent_id}", response_model=schemas.Agent)
-def get_one_agent(agent_id: int, db: Session = Depends(get_db)):
+def get_one_agent(agent_id: str, db: Session = Depends(get_db)):
     db_agent = crud.get_agent(db, agent_id=agent_id)
     if db_agent is None:
         raise HTTPException(status_code=404, detail="Agent not found")

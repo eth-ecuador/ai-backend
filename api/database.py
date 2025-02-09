@@ -27,6 +27,7 @@ except Exception as e:
 # Create session maker and Base class (this is where Base is created)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+Base.metadata.create_all(bind=engine)
 
 def get_db():
     db = SessionLocal()

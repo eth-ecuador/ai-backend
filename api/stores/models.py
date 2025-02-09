@@ -1,38 +1,16 @@
-from dataclasses import dataclass, field
-from pydantic import BaseModel, HttpUrl, Field
-from typing import List, Annotated
+from sqlalchemy import UUID, Column, ForeignKey, Integer, String
+
+from ..database import Base
 
 
-@dataclass(kw_only=True)
-class StoreConfig():
-    embedding_model: Annotated[
-        str,
-        {"__template_metadata__": {"kind": "embeddings"}},
-    ] = field(
-        default="openai/text-embedding-3-small",
-        metadata={
-            "description": "Name of the embedding model to use. Must be a valid embedding model name."
-        },
-    )
+class Document(Base):
+    __tablename__ = "documents"
 
+    id = Column(Integer, primary_key=True, index=True)
+    doc_id = Column(String, index=True)  # External document ID
+    type = Column(String)
+    source = Column(String)
 
-class StoreRequest(BaseModel):
-    messages: List[str]
-    id: int = 1
-
-
-class CreateIndexRequest(BaseModel):
-    user_id: str
-    index_name: str
-    dimension: int = 1536
-
-
-class AddURLsSourceRequest(BaseModel):
-    urls: List[HttpUrl] = Field(..., min_items=1,
-                                description="List of URLs to process")
-    index_name: str
-    user_id: str
-
-class QueryIndexRequest(BaseModel):
-    query: str
-    index_name: str
+    # Foreign key to link to exactly one agent
+    agent_id = Column(UUID(as_uuid=True), ForeignKey(
+        "agents.id", ondelete="CASCADE"), nullable=False)

@@ -1,9 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
 
-from .routers import agents
+from .agents import router as agents_router
+from .stores import router as stores_router
 
 app = FastAPI()
+load_dotenv()
 
 app.add_middleware(
     CORSMiddleware,
@@ -14,7 +17,8 @@ app.add_middleware(
 )
 
 
-app.include_router(agents.router)
+app.include_router(agents_router.router)
+app.include_router(stores_router.router)
 
 @app.get("/")
 async def root():
